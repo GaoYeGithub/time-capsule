@@ -6,14 +6,16 @@ const closeChest = new Audio(chestCloseSound);
 
 const ChestModal = ({ open, setOpen }) => {
   const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const iframeRef = useRef(null);
 
   const closeModal = () => {
-    setOpen(!open);
+    setOpen(false);
     closeChest.volume = 0.3;
     closeChest.play();
   };
 
+  // Function to convert YouTube URL to embed URL
   const getYoutubeEmbedUrl = (url) => {
     if (!url) return '';
     
@@ -33,22 +35,43 @@ const ChestModal = ({ open, setOpen }) => {
   };
 
   useEffect(() => {
-    const fetchLatestBox = async () => {
+    const fetchVideo = async () => {
+      setIsLoading(true);
       try {
-        const response = await fetch('https://discord-mystery.pockethost.io/api/collections/boxes/records?sort=-created&page=1&perPage=1');
+        // Get the ID from the URL
+        const pathSegments = window.location.pathname.split('/');
+        const currentId = pathSegments[pathSegments.length - 1];
+
+        const response = await fetch('https://discord-mystery.pockethost.io/api/collections/boxes/records');
         const data = await response.json();
         
         if (data.items && data.items.length > 0) {
-          const youtubeUrl = data.items[0].field;
-          setYoutubeUrl(getYoutubeEmbedUrl(youtubeUrl));
+          // If there's an ID in the URL, find that specific video
+          if (currentId && currentId.length > 5) {
+            const video = data.items.find(item => item.id === currentId);
+            if (video) {
+              const embedUrl = getYoutubeEmbedUrl(video.field);
+              setYoutubeUrl(embedUrl);
+            } else {
+              // If ID not found, fall back to the first video
+              const embedUrl = getYoutubeEmbedUrl(data.items[0].field);
+              setYoutubeUrl(embedUrl);
+            }
+          } else {
+            // If no ID in URL, use the first video
+            const embedUrl = getYoutubeEmbedUrl(data.items[0].field);
+            setYoutubeUrl(embedUrl);
+          }
         }
       } catch (error) {
         console.error("Error fetching YouTube URL:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     if (open) {
-      fetchLatestBox();
+      fetchVideo();
     }
   }, [open]);
 
@@ -72,23 +95,26 @@ const ChestModal = ({ open, setOpen }) => {
                 </div>
               </div>
               <div className="video-container">
-                {youtubeUrl ? (
-                <iframe
-                  ref={iframeRef}
-                  src={youtubeUrl}
-                  className="surprise-video"
-                  style={{
-                    width: '100%',
-                    height: '70vh',
-                    border: 'none'
-                  }}
-                  title="YouTube Video"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-                ) : (
+                {isLoading ? (
                   <div className="loading-state">
                     Loading surprise...
+                  </div>
+                ) : youtubeUrl ? (
+                  <iframe
+                    ref={iframeRef}
+                    src={youtubeUrl}
+                    className="surprise-video"
+                    style={{
+                      width: '100%',
+                      height: '70vh',
+                      border: 'none'
+                    }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="error-state">
+                    Video not found
                   </div>
                 )}
               </div>

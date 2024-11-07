@@ -1,83 +1,12 @@
-import React, { useState } from 'react';
-import { Lock, Unlock } from 'lucide-react';
+import Link from 'next/link';
 
-const TimeCapsule = ({ title, content }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isUnlocking, setIsUnlocking] = useState(false);
-
-  const handleUnlock = () => {
-    if (!isOpen) {
-      setIsUnlocking(true);
-      setTimeout(() => {
-        setIsOpen(true);
-        setIsUnlocking(false);
-      }, 2000);
-    }
-  };
-
-  return (
-    <div className="relative group">
-      <div 
-        className={`
-          w-64 h-64 rounded-2xl relative overflow-hidden
-          bg-gradient-to-r from-slate-900 to-slate-800
-          border border-cyan-500/30 shadow-lg
-          transform transition-all duration-500
-          ${isOpen ? 'scale-110' : 'hover:scale-105'}
-          ${isUnlocking ? 'animate-pulse' : ''}
-        `}
-      >
-        {/* Hover effect - neon glow */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="absolute inset-0 bg-cyan-500/20 blur-xl"></div>
-        </div>
-
-        {/* Content container */}
-        <div className="relative h-full w-full p-6 flex flex-col items-center justify-center">
-          {!isOpen ? (
-            <>
-              <div className="text-cyan-500 mb-4">
-                {isUnlocking ? (
-                  <Unlock className="w-12 h-12 animate-spin" />
-                ) : (
-                  <Lock className="w-12 h-12" />
-                )}
-              </div>
-              <h3 className="text-cyan-400 text-xl font-semibold mb-2">{title}</h3>
-              <button
-                onClick={handleUnlock}
-                className="mt-4 px-4 py-2 bg-cyan-500/20 text-cyan-300 rounded-lg
-                         hover:bg-cyan-500/30 transition-colors duration-300"
-              >
-                {isUnlocking ? "Unlocking..." : "Unlock Capsule"}
-              </button>
-            </>
-          ) : (
-            <div className="transform animate-fadeIn">
-              <div className="text-cyan-300 text-center">
-                <p className="mb-4">{content}</p>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="mt-2 px-4 py-2 bg-cyan-500/20 text-cyan-300 rounded-lg
-                           hover:bg-cyan-500/30 transition-colors duration-300"
-                >
-                  Seal Capsule
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
+// Modify the TimeCapsuleGrid component to include navigation
 const TimeCapsuleGrid = () => {
   const capsules = [
-    { title: "Memory 2024", content: "First quantum computer reaches 1 million qubits" },
-    { title: "Vision 2025", content: "Mars colony construction begins" },
-    { title: "Future 2026", content: "Flying cars become commercially available" },
-    { title: "Dream 2027", content: "Teleportation breakthrough achieved" },
+    { id: "2024", title: "Memory 2024", content: "First quantum computer reaches 1 million qubits" },
+    { id: "2025", title: "Vision 2025", content: "Mars colony construction begins" },
+    { id: "2026", title: "Future 2026", content: "Flying cars become commercially available" },
+    { id: "2027", title: "Dream 2027", content: "Teleportation breakthrough achieved" },
   ];
 
   return (
@@ -103,8 +32,12 @@ const TimeCapsuleGrid = () => {
           Temporal Vault Interface
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-          {capsules.map((capsule, index) => (
-            <TimeCapsule key={index} {...capsule} />
+          {capsules.map((capsule) => (
+            <Link href={`/capsule/${capsule.id}`} key={capsule.id}>
+              <div className="cursor-pointer">
+                <TimeCapsule {...capsule} />
+              </div>
+            </Link>
           ))}
         </div>
       </div>
@@ -112,26 +45,5 @@ const TimeCapsuleGrid = () => {
   );
 };
 
-// Add custom animation to your tailwind.config.js
-const tailwindConfig = {
-  theme: {
-    extend: {
-      animation: {
-        fadeIn: 'fadeIn 0.5s ease-in',
-        twinkle: 'twinkle 4s ease-in-out infinite',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0', transform: 'translateY(10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        twinkle: {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0' },
-        },
-      },
-    },
-  },
-};
-
+export { TimeCapsule };
 export default TimeCapsuleGrid;
